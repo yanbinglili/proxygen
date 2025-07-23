@@ -9,6 +9,7 @@
 #include <proxygen/httpserver/samples/hq/H2Server.h>
 #include <proxygen/httpserver/samples/hq/HQServerModule.h>
 #include <proxygen/httpserver/samples/hq/SampleHandlers.h>
+#include <proxygen/httpserver/samples/hq/SamplingTransportFactory.h>
 #include <proxygen/lib/http/session/HQSession.h>
 
 using namespace proxygen;
@@ -52,7 +53,12 @@ void startServer(
       sendKnobFrame(session, ("Hello, World from Server!"));
     };
   }
-  HQServer server(params, dispatchFn, std::move(onTransportReadyFn));
+
+  auto SamplingFactory = std::make_unique<SamplingTransportFactory>(
+                   params, dispatchFn, onTransportReadyFn);
+
+  HQServer server(params, std::move(SamplingFactory));
+  //HQServer server(params, dispatchFn, std::move(onTransportReadyFn));
   if (statsFactory) {
     server.setStatsFactory(std::move(statsFactory));
   }

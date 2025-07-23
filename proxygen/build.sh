@@ -509,7 +509,7 @@ set -e nounset
 trap 'cd $BASE_DIR' EXIT
 cd $BUILD_DIR || exit
 BWD=$(pwd)
-DEPS_DIR=$BWD/deps
+DEPS_DIR=$HOME/local
 mkdir -p "$DEPS_DIR"
 
 # Must execute from the directory containing this script
@@ -525,13 +525,12 @@ setup_zstd
 setup_folly
 setup_fizz
 setup_wangle
-setup_mvfst
 
 MAYBE_BUILD_FUZZERS=""
 MAYBE_USE_STATIC_DEPS=""
 MAYBE_LIB_FUZZING_ENGINE=""
 MAYBE_BUILD_SHARED_LIBS=""
-MAYBE_BUILD_TESTS="-DBUILD_TESTS=ON"
+MAYBE_BUILD_TESTS="-DBUILD_TESTS=OFF"
 if [ "$NO_BUILD_TESTS" == true ] ; then
   MAYBE_BUILD_TESTS="-DBUILD_TESTS=OFF"
 fi

@@ -73,6 +73,7 @@ endif()
 #   cmake/proxygen-config.cmake.in
 find_package(fmt REQUIRED)
 find_package(folly REQUIRED)
+find_package(fizz REQUIRED)
 find_package(wangle REQUIRED)
 find_package(mvfst REQUIRED)
 find_package(Zstd REQUIRED)

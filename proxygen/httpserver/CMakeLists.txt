@@ -218,6 +218,7 @@ if (BUILD_SAMPLES)
       samples/hq/HQServerModule.cpp
       samples/hq/HQParams.cpp
       samples/hq/SampleHandlers.cpp
+      samples/hq/SamplingTransportFactory.cpp
   )
   target_compile_options(
       hq
