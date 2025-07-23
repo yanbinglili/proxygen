@@ -509,7 +509,7 @@ set -e nounset
 trap 'cd $BASE_DIR' EXIT
 cd $BUILD_DIR || exit
 BWD=$(pwd)
-DEPS_DIR=$HOME/local
+DEPS_DIR=${DEPS_DIR:-$BWD/deps}
 mkdir -p "$DEPS_DIR"
 
 # Must execute from the directory containing this script
