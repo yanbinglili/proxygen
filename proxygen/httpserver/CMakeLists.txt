@@ -219,6 +219,7 @@ if (BUILD_SAMPLES)
       samples/hq/HQParams.cpp
       samples/hq/SampleHandlers.cpp
       samples/hq/SamplingTransportFactory.cpp
+      samples/hq/AsyncLog.cpp
   )
   target_compile_options(
       hq

@@ -3,6 +3,7 @@
 //
 // SamplingTransportFactory.cpp
 #include "SamplingTransportFactory.h"
+#include <proxygen/httpserver/samples/hq/AsyncLog.h>
 
 using namespace quic::samples;
 
@@ -33,29 +34,22 @@ void PerConnSampler::schedule() {
 
 
 void PerConnSampler::tick() {
-    quic::QuicSocketLite::TransportInfo info = transport_->getTransportInfo();
+  quic::QuicSocketLite::TransportInfo info = transport_->getTransportInfo();
+  auto cidOpt = transport_->getClientConnectionId();
 
-    static std::mutex mu;
-    static std::ofstream ofs("/home/liyan/proxygen/log/quic.log",
-                             std::ios::app);
+  std::stringstream ss;
+  ss << "async_ts="   << nowTimeString()
+     << " cid="    << (cidOpt ? cidOpt->hex() : "no")
+     << " inflight="  << info.bytesInFlight
+     << " retrans="  << info.packetsRetransmitted
+     << " srtt_ms="
+     << std::chrono::duration_cast<std::chrono::milliseconds>(info.srtt).count()
+     << " cctype=" << congestionControlTypeToString(info.congestionControlType)
+     << " cwnd="  << info.congestionWindow;
 
-    auto cidOpt = transport_->getClientConnectionId();
+  AsyncLogger::getInstance("quic").log(ss.str());
 
-    {
-        std::lock_guard<std::mutex> g(mu);
-        ofs << "ts="   << nowTimeString()
-            << " cid="    << (cidOpt ? cidOpt->hex() : "no")
-            << " inflight="  << info.bytesInFlight
-            << " retrans="  << info.packetsRetransmitted
-            << " srtt_ms="
-            << std::chrono::duration_cast<std::chrono::milliseconds>(
-                   info.srtt)
-                   .count()
-            << " cwnd="  << info.congestionWindow
-            << "\n";
-    }
-
-    schedule();
+  schedule();
 }
 
 quic::QuicServerTransport::Ptr SamplingTransportFactory::make(folly::EventBase* evb,

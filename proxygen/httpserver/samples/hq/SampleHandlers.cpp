@@ -17,16 +17,13 @@
 #include <chrono>
 #include <ctime>
 
+#include <proxygen/httpserver/samples/hq/AsyncLog.h>
+
+
 namespace {
 std::atomic<bool> shouldPassHealthChecks{true};
 
-  std::mutex cmcdLogMutex;
-  std::ofstream& cmcdLogStream() {
-    static std::ofstream ofs("/home/liyan/proxygen/log/cmcd.log", std::ios::app);
-    return ofs;
-  }
-
-  std::string nowTimeString() {
+ std::string nowTimeString() {
     using namespace std::chrono;
     auto tp = system_clock::now();
     std::time_t t = system_clock::to_time_t(tp);
@@ -70,17 +67,16 @@ HTTPTransactionHandler* Dispatcher::getRequestHandler(HTTPMessage* msg) {
     if (!cmcdObject.empty() || !cmcdRequest.empty() ||
         !cmcdStatus.empty() || !cmcdSession.empty()) {
 
-      std::lock_guard<std::mutex> g(cmcdLogMutex);
-      auto& ofs = cmcdLogStream();
-      if (ofs.is_open()) {
-        ofs << "[" << nowTimeString() << "] "
-            << "path=" << msg->getPath() << " "
-            << "CMCD-Object=\""  << sanitize(cmcdObject)  << "\" "
-            << "CMCD-Request=\"" << sanitize(cmcdRequest) << "\" "
-            << "CMCD-Status=\""  << sanitize(cmcdStatus)  << "\" "
-            << "CMCD-Session=\"" << sanitize(cmcdSession) << "\""
-            << std::endl;
-      }
+      std::stringstream ss;
+      ss << "async[" << nowTimeString() << "] "
+         << "path=" << msg->getPath() << " "
+         << "CMCD-Object=\\\"" << sanitize(cmcdObject) << "\\\" "
+         << "CMCD-Request=\\\"" << sanitize(cmcdRequest) << "\\\" "
+         << "CMCD-Status=\\\"" << sanitize(cmcdStatus) << "\\\" "
+         << "CMCD-Session=\\\"" << sanitize(cmcdSession) << "\\\"";
+
+      AsyncLogger::getInstance("cmcd").log(ss.str());
+
         }
   }
 

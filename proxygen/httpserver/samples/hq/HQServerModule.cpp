@@ -12,6 +12,8 @@
 #include <proxygen/httpserver/samples/hq/SamplingTransportFactory.h>
 #include <proxygen/lib/http/session/HQSession.h>
 
+#include <proxygen/httpserver/samples/hq/AsyncLog.h>
+
 using namespace proxygen;
 
 namespace {
@@ -63,11 +65,16 @@ void startServer(
     server.setStatsFactory(std::move(statsFactory));
   }
 
+  AsyncLogger::getInstance("cmcd");
+  AsyncLogger::getInstance("quic");
+
   server.start();
   // Wait until the quic server initializes
   server.getAddress();
   h2server.join();
   server.stop();
+
+  AsyncLogger::stopAll();
 }
 
 } // namespace quic::samples
