@@ -17,6 +17,7 @@
 #include <proxygen/httpserver/samples/hq/H1QDownstreamSession.h>
 #include <proxygen/httpserver/samples/hq/HQLoggerHelper.h>
 #include <proxygen/lib/http/session/HQDownstreamSession.h>
+#include <quic/congestion_control/SwitchableCCFactory.h>
 #include <quic/server/QuicSharedUDPSocketFactory.h>
 
 using fizz::server::FizzServerContext;
@@ -250,7 +251,7 @@ HQServer::HQServer(HQServerParams params,
 
   server_->setBindV6Only(false);
   server_->setCongestionControllerFactory(
-      std::make_shared<ServerCongestionControllerFactory>());
+      std::make_shared<SwitchableCCFactory>());
 
   server_->setQuicServerTransportFactory(std::move(factory));
   server_->setQuicUDPSocketFactory(

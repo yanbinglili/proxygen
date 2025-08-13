@@ -548,7 +548,7 @@ fi
 # Build proxygen with cmake
 cd "$BWD" || exit
 cmake                                     \
-  -DCMAKE_BUILD_TYPE=RelWithDebInfo       \
+  -DCMAKE_BUILD_TYPE=Debug       \
   -DCMAKE_PREFIX_PATH="$DEPS_DIR"         \
   -DCMAKE_INSTALL_PREFIX="$PREFIX"        \
   "$MAYBE_BUILD_TESTS"                    \

@@ -12,7 +12,7 @@
 #include <proxygen/httpserver/samples/hq/SamplingTransportFactory.h>
 #include <proxygen/lib/http/session/HQSession.h>
 
-#include <proxygen/httpserver/samples/hq/AsyncLog.h>
+#include <quic/congestion_control/AsyncLogger.h>
 
 using namespace proxygen;
 
@@ -60,7 +60,7 @@ void startServer(
                    params, dispatchFn, onTransportReadyFn);
 
   HQServer server(params, std::move(SamplingFactory));
-  //HQServer server(params, dispatchFn, std::move(onTransportReadyFn));
+  // HQServer server(params, dispatchFn, std::move(onTransportReadyFn));
   if (statsFactory) {
     server.setStatsFactory(std::move(statsFactory));
   }

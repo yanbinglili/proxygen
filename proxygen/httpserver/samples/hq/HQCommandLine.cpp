@@ -152,6 +152,14 @@ DEFINE_bool(read_ecn,
             "Whether to read and echo ecn marking from ingress packets");
 DEFINE_uint32(dscp, 0, "DSCP value to use for outgoing packets");
 
+DEFINE_bool(disable_migration, false,
+            "Advertise disable_active_migration TP (true = forbid active migration)");
+
+DEFINE_int32(self_active_connection_id_limit, 2,
+             "Value for QUIC active_connection_id_limit TP we advertise "
+             "(must be ≥2 per RFC 9000)");
+
+
 namespace quic::samples {
 
 std::ostream& operator<<(std::ostream& o, const HQMode& m) {
@@ -319,7 +327,9 @@ void initializeTransportSettings(HQToolParams& hqUberParams) {
   hqParams.transportSettings.readEcnOnIngress = FLAGS_read_ecn;
 
   hqParams.transportSettings.dscpValue = FLAGS_dscp;
-  hqParams.transportSettings.disableMigration = false;
+  hqParams.transportSettings.disableMigration = FLAGS_disable_migration;
+  hqParams.transportSettings.selfActiveConnectionIdLimit =
+    std::max<int>(2, FLAGS_self_active_connection_id_limit);
 
   hqParams.transportSettings.advertisedExtendedAckFeatures =
       FLAGS_advertise_extended_ack_features;

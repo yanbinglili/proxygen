@@ -17,21 +17,11 @@
 #include <chrono>
 #include <ctime>
 
-#include <proxygen/httpserver/samples/hq/AsyncLog.h>
+#include <quic/congestion_control/AsyncLogger.h>
 
 
 namespace {
 std::atomic<bool> shouldPassHealthChecks{true};
-
- std::string nowTimeString() {
-    using namespace std::chrono;
-    auto tp = system_clock::now();
-    std::time_t t = system_clock::to_time_t(tp);
-    char buf[32];
-    std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", std::localtime(&t));
-    return std::string(buf);
-  }
-
   std::string getHeaderMaybe(const proxygen::HTTPMessage* msg, folly::StringPiece name) {
     const auto& headers = msg->getHeaders();
     std::string v = headers.getSingleOrEmpty(name);
@@ -56,31 +46,10 @@ using namespace proxygen;
 
 HTTPTransactionHandler* Dispatcher::getRequestHandler(HTTPMessage* msg) {
   DCHECK(msg);
-
-  // ---- CMCD logging begin ----
-  {
-    std::string cmcdObject  = getHeaderMaybe(msg, "CMCD-Object");
-    std::string cmcdRequest = getHeaderMaybe(msg, "CMCD-Request");
-    std::string cmcdStatus  = getHeaderMaybe(msg, "CMCD-Status");
-    std::string cmcdSession = getHeaderMaybe(msg, "CMCD-Session");
-
-    if (!cmcdObject.empty() || !cmcdRequest.empty() ||
-        !cmcdStatus.empty() || !cmcdSession.empty()) {
-
-      std::stringstream ss;
-      ss << "async[" << nowTimeString() << "] "
-         << "path=" << msg->getPath() << " "
-         << "CMCD-Object=\\\"" << sanitize(cmcdObject) << "\\\" "
-         << "CMCD-Request=\\\"" << sanitize(cmcdRequest) << "\\\" "
-         << "CMCD-Status=\\\"" << sanitize(cmcdStatus) << "\\\" "
-         << "CMCD-Session=\\\"" << sanitize(cmcdSession) << "\\\"";
-
-      AsyncLogger::getInstance("cmcd").log(ss.str());
-
-        }
-  }
-
   auto path = msg->getPathAsStringPiece();
+  if (path == "/cmcd") {
+    return new MetricsHandler(params_);
+  }
   if (path == "/" || path == "/echo") {
     return new EchoHandler(params_);
   }

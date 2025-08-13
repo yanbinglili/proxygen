@@ -36,6 +36,11 @@
 #include <proxygen/lib/http/session/HTTPTransaction.h>
 #include <proxygen/lib/utils/SafePathUtils.h>
 
+#include <folly/io/IOBufQueue.h>
+#include <folly/json.h>
+#include <quic/congestion_control/AsyncLogger.h>
+#include <proxygen/httpserver/samples/hq/AsyncSocketWriter.h>
+
 namespace quic::samples {
 
 /**
@@ -978,6 +983,45 @@ class StaticFileHandler : public BaseSampleHandler {
   std::unique_ptr<folly::File> file_;
   std::atomic<bool> paused_{false};
   std::string staticRoot_;
+};
+
+class MetricsHandler : public BaseSampleHandler {
+ public:
+  explicit MetricsHandler(const HandlerParams& params)
+      : BaseSampleHandler(params) {}
+
+  MetricsHandler() = delete;
+
+  void onHeadersComplete(std::unique_ptr<proxygen::HTTPMessage> /*msg*/) noexcept override {
+  }
+
+  void onBody(std::unique_ptr<folly::IOBuf> chain) noexcept override {
+    if (chain) body_.append(std::move(chain));
+  }
+
+  void onEOM() noexcept override {
+    std::string bodyStr;
+    body_.appendToString(bodyStr);
+
+
+    folly::dynamic line = "ts:" + nowTimeString_ms() + bodyStr;
+
+    AsyncLogger::getInstance("cmcd").log(folly::toJson(line));
+
+    proxygen::HTTPMessage resp;
+    resp.setStatusCode(204);
+    resp.setStatusMessage("No Content");
+    resp.setWantsKeepalive(true);
+    txn_->sendHeaders(resp);
+    txn_->sendEOM();
+  }
+
+  void onError(const proxygen::HTTPException&) noexcept override {
+    txn_->sendAbort();
+  }
+
+ private:
+  folly::IOBufQueue body_{folly::IOBufQueue::cacheChainLength()};
 };
 
 } // namespace quic::samples
