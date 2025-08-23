@@ -18,6 +18,7 @@
 #include <ctime>
 
 #include <quic/congestion_control/AsyncLogger.h>
+#include <proxygen/httpserver/samples/hq/AsyncSocketWriter.h>
 
 
 namespace {
@@ -46,6 +47,32 @@ using namespace proxygen;
 
 HTTPTransactionHandler* Dispatcher::getRequestHandler(HTTPMessage* msg) {
   DCHECK(msg);
+
+  {
+    std::string cmcdObject  = getHeaderMaybe(msg, "CMCD-Object");
+    std::string cmcdRequest = getHeaderMaybe(msg, "CMCD-Request");
+    std::string cmcdStatus  = getHeaderMaybe(msg, "CMCD-Status");
+    std::string cmcdSession = getHeaderMaybe(msg, "CMCD-Session");
+    std::string prevSegInfo = getHeaderMaybe(msg, "X-Prev-Segment");
+
+    if (!cmcdObject.empty() || !cmcdRequest.empty() ||
+        !cmcdStatus.empty() || !cmcdSession.empty()) {
+      std::string path = msg->getPath();
+
+      using ojson = nlohmann::ordered_json;
+        ojson j = {
+          {"type", "cmcd"},
+          {"hts", nowTimeString()},
+          {"path", path},
+          {"CMCD-Object", cmcdObject},
+          {"CMCD-Request", cmcdRequest},
+          {"CMCD-Status", cmcdStatus},
+          {"CMCD-Session", cmcdSession},
+          {"prev-SegInfo", prevSegInfo}
+        };
+      AsyncLogger::getInstance("quic").log(j.dump());}
+
+  }
   auto path = msg->getPathAsStringPiece();
   if (path == "/cmcd") {
     return new MetricsHandler(params_);

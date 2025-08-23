@@ -67,8 +67,8 @@ void PerConnSampler::tick() {
   double ack_rate = (info.bytesAcked - prevBytesAcked) * 8 / real_interval * 1000;
 
   using ojson = nlohmann::ordered_json;
-
   ojson j = {
+    {"type", "quic"},
     {"hts", nowTimeString_ms()},
     {"ts", nowEpochMs()},
     {"server_conn_id", (cidOpt ? cidOpt->hex() : "no")},

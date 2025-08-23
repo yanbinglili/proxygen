@@ -40,6 +40,8 @@
 #include <folly/json.h>
 #include <quic/congestion_control/AsyncLogger.h>
 #include <proxygen/httpserver/samples/hq/AsyncSocketWriter.h>
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
 
 namespace quic::samples {
 
@@ -1003,10 +1005,15 @@ class MetricsHandler : public BaseSampleHandler {
     std::string bodyStr;
     body_.appendToString(bodyStr);
 
+    using ojson = nlohmann::ordered_json;
+    ojson j = {
+      {"type", "prev_cmcd"},
+      {"hts", nowTimeString()},
+      {"content", bodyStr}
+    };
 
-    folly::dynamic line = "ts:" + nowTimeString_ms() + bodyStr;
+    AsyncLogger::getInstance("quic").log(j.dump());
 
-    AsyncLogger::getInstance("cmcd").log(folly::toJson(line));
 
     proxygen::HTTPMessage resp;
     resp.setStatusCode(204);
