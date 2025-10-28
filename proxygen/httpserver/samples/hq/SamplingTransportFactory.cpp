@@ -96,7 +96,7 @@ void PerConnSampler::tick() {
   prevTotalPtoCount = info.totalPTOCount;
 
   AsyncLogger::getInstance("quic").log(j.dump());
-  AsyncSocketWriter::getInstance("trans_metric").write(j.dump());
+  AsyncSocketWriter::getInstance("cc_logs").write(j.dump());
 
   schedule();
 }

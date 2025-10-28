@@ -70,8 +70,9 @@ HTTPTransactionHandler* Dispatcher::getRequestHandler(HTTPMessage* msg) {
           {"CMCD-Session", cmcdSession},
           {"prev-SegInfo", prevSegInfo}
         };
-      AsyncLogger::getInstance("quic").log(j.dump());}
-
+      AsyncLogger::getInstance("quic").log(j.dump());
+      AsyncSocketWriter::getInstance("cc_logs").write(j.dump());
+    }
   }
   auto path = msg->getPathAsStringPiece();
   if (path == "/cmcd") {
